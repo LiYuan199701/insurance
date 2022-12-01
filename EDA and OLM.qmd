@@ -1,0 +1,162 @@
+---
+title: "Final Project"
+subtitle: "linear regression on insurance data"
+author: "Leon Yuan"
+date: "`r Sys.Date()`"
+abstract: "This is a linear regression model."
+thanks: "Hunter, Dr. McGee, Leon"
+format: pdf
+editor: visual
+---
+
+Our goal is to predict the charges based on the given predictors.
+
+# Import data
+
+```{r}
+#| output: false
+library(tidyverse)
+```
+
+```{r}
+insurance <- read_csv("insurance.csv")
+View(insurance)
+```
+
+# EDA
+
+## Check missing
+
+This data is complete and no missing data.
+
+```{r}
+library(Amelia)
+missmap(insurance, main = "Missing values vs observed")
+```
+
+## charges
+
+```{r}
+boxplot(charges ~ sex, data = insurance)
+```
+
+## ages
+
+```{r}
+boxplot(age ~ sex, data = insurance)
+```
+
+## how many each gender
+
+```{r}
+insurance %>%
+  count(sex)
+```
+
+## bmi
+
+```{r}
+boxplot(bmi ~ sex, data = insurance)
+```
+
+## children
+
+```{r}
+boxplot(children ~ sex, data = insurance)
+```
+
+## smoker
+
+```{r}
+insurance %>%
+  count(sex, smoker)
+```
+
+## region
+
+```{r}
+insurance %>%
+  count(sex, region)
+```
+
+# Simple or Oridinary linear regression
+
+## First of all, convert categorical variables into factor or dummy variables
+
+```{r}
+insurance$sex <- factor(insurance$sex, levels = c("male", "female"), labels = c("male", "female"))
+insurance$smoker <- factor(insurance$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+insurance$region <- factor(insurance$region)
+```
+
+## Check factor variables
+
+```{r}
+# sex
+contrasts(insurance$sex)
+```
+
+```{r}
+# smoker
+contrasts(insurance$smoker)
+```
+
+```{r}
+# region
+contrasts(insurance$region)
+```
+
+## simple linear regression without any processing
+
+```{r}
+lm.fit <- lm(data = insurance, charges ~ .)
+```
+
+```{r}
+summary(lm.fit)
+```
+
+## diagnotical analysis
+
+It's bad.
+
+```{r}
+plot(lm.fit)
+```
+
+## transform the `bmi` into 1/bmi
+
+```{r}
+insurance_bmi <- insurance
+insurance_bmi$bmi <- 1/insurance_bmi$bmi
+View(insurance_bmi)
+```
+
+```{r}
+lm.fit.bmi <- lm(data = insurance_bmi, charges ~ .)
+summary(lm.fit.bmi)
+```
+
+## Create the interaction between bmi and age
+
+```{r}
+lm.fit.bmi_age <- lm(data = insurance, charges ~ . + bmi * age)
+summary(lm.fit.bmi_age)
+```
+
+# Random Forest model
+
+```{r}
+library(randomForest)
+library(caret)
+```
+
+```{r}
+rf <- randomForest(charges ~ ., data=insurance, proximity=TRUE)
+print(rf)
+```
+
+```{r}
+## Look at variable importance:
+round(importance(rf), 2)
+```
