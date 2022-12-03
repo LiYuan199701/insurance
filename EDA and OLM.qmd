@@ -19,7 +19,7 @@ library(tidyverse)
 ```
 
 ```{r}
-insurance <- read_csv("insurance.csv")
+insurance <- read_csv("./data/insurance.csv")
 View(insurance)
 ```
 
@@ -50,7 +50,22 @@ boxplot(age ~ sex, data = insurance)
 
 ```{r}
 insurance %>%
-  count(sex)
+  count(sex) %>%
+  ggplot(aes(x=sex, y=n, fill = sex)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values=c("#354CA1", "#CC0035")) +
+  labs(title = "Sex Count") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "sex count.pdf", path = "./img")
 ```
 
 ## bmi
@@ -69,7 +84,22 @@ boxplot(children ~ sex, data = insurance)
 
 ```{r}
 insurance %>%
-  count(sex, smoker)
+  count(smoker) %>%
+  ggplot(aes(x=smoker, y=n, fill = smoker)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values=c("#354CA1", "#CC0035")) +
+  labs(title = "Smoker Count") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "smoker count.pdf", path = "./img")
 ```
 
 ## region
