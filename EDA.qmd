@@ -1,0 +1,387 @@
+---
+title: "Final Project"
+subtitle: "linear regression on insurance data"
+author: "Leon Yuan"
+date: "`r Sys.Date()`"
+abstract: "This is a linear regression model."
+thanks: "Hunter, Dr. McGee, Leon"
+format: pdf
+editor: visual
+---
+
+Our goal is to predict the charges based on the given predictors.
+
+# Import data
+
+```{r}
+#| output: false
+library(tidyverse)
+```
+
+```{r}
+insurance <- read_csv("./data/insurance.csv")
+View(insurance)
+```
+
+# EDA
+
+## Check missing
+
+This data is complete and no missing data.
+
+```{r}
+library(Amelia)
+missmap(insurance, main = "Missing values vs observed")
+```
+
+## charges
+
+```{r}
+ggplot(insurance, aes(x = charges)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 colour = "#CC0035", fill = "white", bins = 50) +
+  geom_density(lwd = 1, colour = "#354CA1",
+               fill = 4, alpha = 0.25) +
+  labs(title = "Charges Distribution") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "charge dist.pdf", path = "./img")
+```
+### Boxplot for charges
+
+```{r}
+insurance %>%
+  ggplot(aes(y = charges)) +
+  geom_boxplot(fill = "#CC0035", outlier.color = "#354CA1") +
+  scale_fill_manual(values=c("#CC0035", "#354CA1", '#F9C80E', '#FF1053')) +
+  labs(title = "Boxplot Charges") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "box charges.pdf", path = "./img")
+```
+
+## ages
+
+```{r}
+ggplot(insurance, aes(x = age)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 colour = "#CC0035", fill = "white", bins = 50) +
+  geom_density(lwd = 1, colour = "#354CA1",
+               fill = 4, alpha = 0.25) +
+  labs(title = "Age Distribution") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "age dist.pdf", path = "./img")
+```
+
+## how many each gender
+
+```{r}
+insurance %>%
+  count(sex) %>%
+  ggplot(aes(x=sex, y=n, fill = sex)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values=c("#354CA1", "#CC0035")) +
+  labs(title = "Sex Count") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "sex count.pdf", path = "./img")
+```
+
+## bmi
+
+```{r}
+ggplot(insurance, aes(x = bmi)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 colour = "#CC0035", fill = "white", bins = 50) +
+  geom_density(lwd = 1, colour = "#354CA1",
+               fill = 4, alpha = 0.25) +
+  labs(title = "BMI Distribution") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "bmi dist.pdf", path = "./img")
+```
+
+## children
+
+```{r}
+ggplot(insurance, aes(x = children)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 colour = "#CC0035", fill = "white", bins = 5) +
+  geom_density(lwd = 1, colour = "#354CA1",
+               fill = 4, alpha = 0.25) +
+  labs(title = "Children Distribution") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "chi dist.pdf", path = "./img")
+```
+
+## smoker
+
+```{r}
+insurance %>%
+  count(smoker) %>%
+  ggplot(aes(x=smoker, y=n, fill = smoker)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values=c("#354CA1", "#CC0035")) +
+  labs(title = "Smoker Count") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "smoker count.pdf", path = "./img")
+```
+
+## region
+
+```{r}
+insurance %>%
+  count(region) %>%
+  ggplot(aes(x=region, y=n, fill = region)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values=c("#354CA1", "#CC0035", '#F9C80E', '#FF1053')) +
+  labs(title = "Region Count") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "region count.pdf", path = "./img")
+```
+
+## correlation between each variable
+
+```{r}
+library(ggcorrplot)
+```
+
+```{r}
+corr <- round(cor(insurance[,c("age", "bmi", "children", "charges")]), 1)
+```
+
+```{r}
+# using hierarchical clustering
+ggcorrplot(corr, hc.order = TRUE, 
+           outline.col = "white",
+           title = "Correlation of Continuous Variables",
+           colors = c("#CC0035", "white", "#354CA1")) +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_blank(),
+axis.title.y = element_blank(),
+axis.text.x = element_text(size=20, color = "#CC0035"),
+axis.text.y = element_text(size=20, color = "#CC0035"),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "corr.pdf", path = "./img")
+```
+
+## Charges boxplot by sex
+
+```{r}
+insurance %>%
+  ggplot(aes(x = sex, y = charges, fill = sex)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("#CC0035", "#354CA1", '#F9C80E', '#FF1053')) +
+  labs(title = "Boxplot charges VS sex") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "box sex.pdf", path = "./img")
+```
+
+## Charges boxplot by smoker
+
+```{r}
+insurance %>%
+  ggplot(aes(x = smoker, y = charges, fill = smoker)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("#CC0035", "#354CA1", '#F9C80E', '#FF1053')) +
+  labs(title = "Boxplot charges VS smoker") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "box smoker.pdf", path = "./img")
+```
+
+## Charges boxplot by region
+
+```{r}
+insurance %>%
+  ggplot(aes(x = region, y = charges, fill = region)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("#CC0035", "#354CA1", '#F9C80E', '#FF1053')) +
+  labs(title = "Boxplot charges VS region") +
+  theme_light() +
+  theme(
+plot.title = element_text(color="#354CA1", size=25, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#CC0035", size=20, face="bold"),
+axis.title.y = element_text(color="#CC0035", size=20, face="bold"),
+axis.text.x = element_text(size=15),
+axis.text.y = element_text(size=15),
+legend.title = element_text(size = 18),
+legend.text = element_text(size = 15)
+)
+ggsave(filename = "box region.pdf", path = "./img")
+```
+
+# Simple or Oridinary linear regression
+
+```{r}
+
+```
+
+## First of all, convert categorical variables into factor or dummy variables
+
+```{r}
+insurance$sex <- factor(insurance$sex, levels = c("male", "female"), labels = c("male", "female"))
+insurance$smoker <- factor(insurance$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+insurance$region <- factor(insurance$region)
+```
+
+## Check factor variables
+
+```{r}
+# sex
+contrasts(insurance$sex)
+```
+
+```{r}
+# smoker
+contrasts(insurance$smoker)
+```
+
+```{r}
+# region
+contrasts(insurance$region)
+```
+
+## simple linear regression without any processing
+
+```{r}
+lm.fit <- lm(data = insurance, charges ~ .)
+```
+
+```{r}
+summary(lm.fit)
+```
+
+## diagnotical analysis
+
+It's bad.
+
+```{r}
+plot(lm.fit)
+```
+
+## transform the `bmi` into 1/bmi
+
+```{r}
+insurance_bmi <- insurance
+insurance_bmi$bmi <- 1/insurance_bmi$bmi
+View(insurance_bmi)
+```
+
+```{r}
+lm.fit.bmi <- lm(data = insurance_bmi, charges ~ .)
+summary(lm.fit.bmi)
+```
+
+## Create the interaction between bmi and age
+
+```{r}
+lm.fit.bmi_age <- lm(data = insurance, charges ~ . + bmi * age)
+summary(lm.fit.bmi_age)
+```
+
+# Random Forest model
+
+```{r}
+library(randomForest)
+library(caret)
+```
+
+```{r}
+rf <- randomForest(charges ~ ., data=insurance, proximity=TRUE)
+print(rf)
+```
+
+```{r}
+## Look at variable importance:
+round(importance(rf), 2)
+```
