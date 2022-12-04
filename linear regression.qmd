@@ -1,0 +1,136 @@
+---
+title: "linear regression"
+author: "Leon Yuan"
+format: pdf
+editor: visual
+---
+
+```{r}
+insurance <- read_csv("./data/insurance.csv")
+```
+
+```{r}
+#| output: false
+library(tidyverse)
+```
+
+```{r}
+library(splitTools)
+```
+
+# Split data into train, valid, test
+
+```{r}
+inds <- partition(insurance$smoker, p = c(train = 0.8, valid = 0.1, test = 0.1))
+str(inds)
+
+train <- insurance[inds$train, ]
+valid <- insurance[inds$valid, ]
+test <- insurance[inds$test, ]
+
+write_csv(train, file = "./data/train.csv")
+write_csv(valid, file = "./data/valid.csv")
+write_csv(test, file = "./data/test.csv")
+```
+
+
+# Simple or Oridinary linear regression
+
+```{r}
+train <- read_csv("./data/train.csv")
+test <- read_csv("./data/test.csv")
+```
+
+## First of all, convert categorical variables into factor or dummy variables
+
+```{r}
+train$sex <- factor(train$sex, levels = c("male", "female"), labels = c("male", "female"))
+train$smoker <- factor(train$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+train$region <- factor(train$region)
+##############################################
+
+test$sex <- factor(test$sex, levels = c("male", "female"), labels = c("male", "female"))
+test$smoker <- factor(test$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+test$region <- factor(test$region)
+```
+
+## Check factor variables
+
+```{r}
+# sex
+contrasts(train$sex)
+```
+
+```{r}
+# smoker
+contrasts(train$smoker)
+```
+
+```{r}
+# region
+contrasts(train$region)
+```
+
+## simple linear regression without any processing
+
+```{r}
+train.fit <- lm(data = train, charges ~ .)
+```
+
+```{r}
+summary(train.fit)
+```
+
+```{r}
+# Root-mean-squared error function used to evaluate results
+rmse <- function(y, pred) {
+  sqrt(mean((y - pred)^2))
+}
+```
+
+```{r}
+# R square
+adj.r2 <- function(y, pred){
+  r2 = 1 - sum((y-pred)^2) / sum((y-mean(y))^2)
+  1-(1-r2)*(length(y)-1)/(length(y)-8-1)
+} 
+```
+
+```{r}
+# RMSE
+pred <- predict(train.fit, newdata = train)
+rmse(train$charges, pred)
+```
+
+
+## diagnotical analysis
+
+It's bad.
+
+```{r}
+plot(train.fit)
+```
+
+## Evaluate it on the test set
+
+```{r}
+pred <- predict(train.fit, newdata = test)
+rmse(test$charges, pred)
+```
+
+```{r}
+pred <- predict(train.fit, newdata = test)
+adj.r2(test$charges, pred)
+```
+
+## Evaluate it on the valid set
+
+```{r}
+pred <- predict(train.fit, newdata = valid)
+rmse(valid$charges, pred)
+```
+
+```{r}
+pred <- predict(train.fit, newdata = valid)
+adj.r2(valid$charges, pred)
+```
