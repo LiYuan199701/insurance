@@ -11,11 +11,6 @@ library(tidyverse)
 ```
 
 ```{r}
-insurance <- read_csv("./data/insurance.csv")
-View(insurance)
-```
-
-```{r}
 versions::installed.versions("h2o")
 ```
 
@@ -38,7 +33,7 @@ install.packages("h2o", type="source", repos=(c("http://h2o-release.s3.amazonaws
 ```{r}
 library(h2o)
 h2o.init()
-demo(h2o.kmeans)
+#demo(h2o.kmeans)
 ```
 
 ```{r}
@@ -66,48 +61,43 @@ print(lb, n = nrow(lb))  # Print all rows instead of default (6 rows)
 ```
 
 ```{r}
-#make this example reproducible
-set.seed(1)
-
-#use 70% of dataset as training set and 30% as test set
-sample <- sample(c(TRUE, FALSE), nrow(insurance), replace=TRUE, prob=c(0.7,0.3))
-train  <- insurance[sample, ]
-test   <- insurance[!sample, ]
-
-train <- write.csv(train, file = "train.csv")
-test <- write.csv(test, file = "test.csv")
-```
-
-```{r}
 # Import a sample binary outcome train/test set into H2O
-train <- h2o.importFile("train.csv")
-test <- h2o.importFile("test.csv")
+train <- h2o.importFile("/Users/liyuan/Documents/SMU/Fall\ 2022/6324/final/insurance/data/train_adjusted.csv")
+valid <- h2o.importFile("/Users/liyuan/Documents/SMU/Fall\ 2022/6324/final/insurance/data/valid_adjusted.csv")
+test <- h2o.importFile("/Users/liyuan/Documents/SMU/Fall\ 2022/6324/final/insurance/data/test_adjusted.csv")
+
+h2o.describe(train)
 
 # Identify predictors and response
 y <- "charges"
 x <- setdiff(names(train), y)
 
 # For binary classification, response should be a factor
-char <- c('sex', 'smoker', 'region')
+char <- c('sex', 'smoker', 'region', 'children')
 for(i in char){
   train[, i] <- as.factor(train[, i])
+  valid[, i] <- as.factor(valid[, i])
   test[, i] <- as.factor(test[, i])
 }
 
 # Run AutoML for 20 base models
 aml <- h2o.automl(x = x, y = y,
                   training_frame = train,
+                  validation_frame = valid,
+                  leaderboard_frame = test,
                   max_models = 30,
+                  project_name = "insurance_autoML",
                   seed = 2)
 
 # View the AutoML Leaderboard
 lb <- aml@leaderboard
 print(lb, n = nrow(lb))  # Print all rows instead of default (6 rows)
+View(as.data.frame(lb))
 ```
 
 ```{r}
 pred <- h2o.predict(aml, test)
-pred
+as.data.frame(pred)
 ```
 
 ```{r}
@@ -121,3 +111,16 @@ lb
 m <- h2o.get_best_model(aml)
 m
 ```
+
+
+```{r}
+# Explain an AutoML object
+exa <- h2o.explain(aml, test)
+exa
+```
+
+```{r}
+learning_curve_plot <- h2o.learning_curve_plot(aml@leader)
+learning_curve_plot
+```
+

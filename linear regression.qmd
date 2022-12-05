@@ -33,25 +33,40 @@ write_csv(valid, file = "./data/valid.csv")
 write_csv(test, file = "./data/test.csv")
 ```
 
-
 # Simple or Oridinary linear regression
 
 ```{r}
-train <- read_csv("./data/train.csv")
-test <- read_csv("./data/test.csv")
+train <- read_csv("./data/train_adjusted.csv")
+valid <- read_csv("./data/valid_adjusted.csv")
+test <- read_csv("./data/test_adjusted.csv")
 ```
 
 ## First of all, convert categorical variables into factor or dummy variables
 
 ```{r}
+train <- train[, -1]
+valid <- valid[, -1]
+test <- test[, -1]
+```
+
+```{r}
 train$sex <- factor(train$sex, levels = c("male", "female"), labels = c("male", "female"))
 train$smoker <- factor(train$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+train$children <- factor(train$children, levels = c("yes", "no"), labels = c("yes", "no"))
 train$region <- factor(train$region)
+##############################################
+
+valid$sex <- factor(valid$sex, levels = c("male", "female"), labels = c("male", "female"))
+valid$smoker <- factor(valid$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+valid$children <- factor(valid$children, levels = c("yes", "no"), labels = c("yes", "no"))
+valid$region <- factor(valid$region)
 ##############################################
 
 test$sex <- factor(test$sex, levels = c("male", "female"), labels = c("male", "female"))
 test$smoker <- factor(test$smoker, levels = c("yes", "no"), labels = c("yes", "no"))
+test$children <- factor(test$children, levels = c("yes", "no"), labels = c("yes", "no"))
 test$region <- factor(test$region)
+##############################################
 ```
 
 ## Check factor variables
@@ -64,6 +79,11 @@ contrasts(train$sex)
 ```{r}
 # smoker
 contrasts(train$smoker)
+```
+
+```{r}
+# children
+contrasts(train$children)
 ```
 
 ```{r}
@@ -89,7 +109,7 @@ rmse <- function(y, pred) {
 ```
 
 ```{r}
-# R square
+# adj R square
 adj.r2 <- function(y, pred){
   r2 = 1 - sum((y-pred)^2) / sum((y-mean(y))^2)
   1-(1-r2)*(length(y)-1)/(length(y)-8-1)
@@ -101,7 +121,6 @@ adj.r2 <- function(y, pred){
 pred <- predict(train.fit, newdata = train)
 rmse(train$charges, pred)
 ```
-
 
 ## diagnotical analysis
 
