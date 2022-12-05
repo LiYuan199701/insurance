@@ -11,7 +11,7 @@ library(tidyverse)
 ```
 
 ```{r}
-insurance <- read_csv("insurance.csv")
+insurance <- read_csv("./data/insurance.csv")
 View(insurance)
 ```
 

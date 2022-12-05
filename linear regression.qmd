@@ -108,7 +108,9 @@ rmse(train$charges, pred)
 It's bad.
 
 ```{r}
-plot(train.fit)
+pdf(file="./img/lm_diag.pdf")
+plot(train.fit, pch=19, col = "#354CA1", cex = 0.8)
+dev.off()
 ```
 
 ## Evaluate it on the test set
